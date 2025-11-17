@@ -1,16 +1,27 @@
 pipeline {
   agent any
   tools { 
-        maven 'Maven'  
+      maven 'Maven'  
     }
    stages{
-    stage('CompileandRunSonarAnalysis') {
+      stage('CompileandRunSonarAnalysis') {
             steps {	
                 sh 'mvn clean verify sonar:sonar -Dsonar.projectKey=obalola14_buggy_code -Dsonar.organization=obalola14 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=7295af736b02e64c5e4624e456b4c4444f0b611a'
             //   withSonarQubeEnv('sonar') {
             //     sh 'mvn clean verify sonar:sonar'
             //   }
-        } 
+            // verify is the last stage of build lifecycle and it runs any checks to verify the project is valid and meets quality criteria. sonar:sonar runs the sonar analysis. -Dsonar.* are the parameters required for sonarcloud analysis. specific to your Maven project.
+            }
   }
-}
+      stage('RunSCAAnalysisUsingSnyk') {
+            steps {		
+                        withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
+                              sh 'mvn snyk:test -fn' 
+                              // -fn stops jenkins job from failing if snyk frinds vulnerabilities
+                        }
+                  }
+            }	
+
+     
+      }
 }
