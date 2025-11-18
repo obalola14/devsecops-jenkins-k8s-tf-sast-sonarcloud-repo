@@ -21,7 +21,25 @@ pipeline {
                         }
                   }
             }	
-
-     
+//steps below builds docker image and pushes to AWS ECR, different from using dokcer commands in shell script. Made possible with Jenkins Docker Pipleline plugin
+      stage('Build') { 
+            steps { 
+                  withDockerRegistry([credentialsId: "dockerhub_login", url: ""]) {
+                  script{
+                  app =  docker.build("asg")
+                  }
+            }
       }
+}
+
+	stage('Push') {
+            steps {
+                script{
+                    docker.withRegistry('https://306617143793.dkr.ecr.us-west-2.amazonaws.com/asg', 'ecr:us-west-2:aws-credentials') {
+                    app.push("latest")
+                    }
+                }
+            }
+    	}
+}
 }
