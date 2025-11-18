@@ -27,6 +27,7 @@ pipeline {
                   withDockerRegistry([credentialsId: "dockerhub_login", url: ""]) {
                   script{
                   app =  docker.build("asg")
+                  //docker.build command above is the same as docker build -t asg .                 
                   }
             }
       }
