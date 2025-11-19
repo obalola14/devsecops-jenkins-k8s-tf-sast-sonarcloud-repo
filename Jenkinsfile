@@ -45,9 +45,18 @@ pipeline {
 
       stage('Kubernetes Deployment of ASG Bugg Web Application') {
 	   steps {
-	      withKubeConfig([credentialsId: 'kubelogin']) {
+	      withKubeConfig([credentialsId: 'kubelogin']) { //Kubernetes CLI Plugin
 		sh ('kubectl delete all --all -n devsecops')
 		sh ('kubectl apply -f deployment.yaml --namespace=devsecops')
+//          can also do
+//          withCredentials([file(credentialsId: 'kubeconfig-prod', variable: 'KCFG')]) {
+//          sh '''
+//          export KUBECONFIG=$KCFG
+//          kubectl get nodes
+//     '''
+}
+
+            //
 		}
 	      }
    	}
