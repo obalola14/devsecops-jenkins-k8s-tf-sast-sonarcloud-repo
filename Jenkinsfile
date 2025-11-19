@@ -76,6 +76,7 @@ pipeline {
       stage('ZAP Scan') {
             steps {
                   script {
+                        withKubeConfig([credentialsId: 'kubelogin']) {
                         // Resolve URL on the Jenkins node (where kubectl exists)
                         def targetUrl = sh(
                         script: "kubectl get svc asgbuggy -n devsecops -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
@@ -95,7 +96,7 @@ pipeline {
                   }
             }
             }
-
+      }
 
       }
 	      
