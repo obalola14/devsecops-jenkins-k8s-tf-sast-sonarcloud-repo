@@ -74,20 +74,28 @@ pipeline {
 	//      }
       //  } 
       stage('ZAP Scan') {
-            agent {
-                  docker {
-                        image 'owasp/zap2docker-stable'
-                        args '-u root:root'
+            steps {
+                  script {
+                        // Resolve URL on the Jenkins node (where kubectl exists)
+                        def targetUrl = sh(
+                        script: "kubectl get svc asgbuggy -n devsecops -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
+                        returnStdout: true
+                        ).trim()
+
+                        echo "Target URL: http://${targetUrl}"
+
+                        docker.image('owasp/zap2docker-stable').inside('-u root:root') {
+                              sh """
+                                    zap.sh -cmd \
+                                          -quickurl http://${targetUrl} \
+                                          -quickprogress \
+                                          -quickout zap_report.html
+                        """
+                        }
                   }
             }
-            steps {
-                  sh """
-                        (zap.sh -cmd -quickurl  http://$(kubectl get services/asgbuggy --namespace=devsecops -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") \
-                              -quickprogress \
-                              -quickout zap_report.html)
-                  """
             }
-            }
+
 
       }
 	      
