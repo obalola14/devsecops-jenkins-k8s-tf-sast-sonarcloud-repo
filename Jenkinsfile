@@ -82,9 +82,9 @@ pipeline {
             }
             steps {
                   sh """
-                        zap.sh -cmd -quickurl  http://$(kubectl get services/asgbuggy --namespace=devsecops -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") \
+                        (zap.sh -cmd -quickurl  http://$(kubectl get services/asgbuggy --namespace=devsecops -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") \
                               -quickprogress \
-                              -quickout zap_report.html
+                              -quickout zap_report.html)
                   """
             }
             }
