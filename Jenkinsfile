@@ -85,13 +85,18 @@ pipeline {
 
                         echo "Target URL: http://${targetUrl}"
 
-                        docker.image('owasp/zap2docker-stable').inside('-u root:root') {
-                              sh """
-                                    zap.sh -cmd \
-                                          -quickurl http://${targetUrl} \
-                                          -quickprogress \
-                                          -quickout zap_report.html
-                        """
+                        // Use Jenkins docker credentials for authenticated pulls
+                        withDockerRegistry([credentialsId: 'dockerhub_login', url: 'https://index.docker.io/v1/']) {
+
+                    // Run ZAP inside the Docker container
+
+                              docker.image('owasp/zap2docker-stable').inside('-u root:root') {
+                                    sh """
+                                          zap.sh -cmd \
+                                                -quickurl http://${targetUrl} \
+                                                -quickprogress \
+                                                -quickout zap_report.html
+                              """
                         }
                   }
             }
