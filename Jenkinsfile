@@ -17,6 +17,7 @@ pipeline {
             steps {		
                         withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
                               sh 'mvn snyk:test -fn' 
+                              archiveArtifacts artifacts: 'snyk_report.json', fingerprint: true
                               // -fn stops jenkins job from failing if snyk frinds vulnerabilities
                         }
                   }
@@ -65,45 +66,46 @@ pipeline {
 	   	}
 	   }
 	   
-	// stage('RunDASTUsingZAP') {
-      //     steps {
-	// 	    withKubeConfig([credentialsId: 'kubelogin']) {
-	// 			sh('zap.sh -cmd -quickurl http://$(kubectl get services/asgbuggy --namespace=devsecops -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") -quickprogress -quickout ${WORKSPACE}/zap_report.html')
-	// 			archiveArtifacts artifacts: 'zap_report.html'
-	// 	    }
-	//      }
-      //  } 
-      stage('ZAP Scan') {
-            steps {
-                  script {
-                        withKubeConfig([credentialsId: 'kubelogin']) {
-                        // Resolve URL on the Jenkins node (where kubectl exists)
-                        def targetUrl = sh(
-                        script: "kubectl get svc asgbuggy -n devsecops -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
-                        returnStdout: true
-                        ).trim()
+	stage('RunDASTUsingZAP') {
+          steps {
+		    withKubeConfig([credentialsId: 'kubelogin']) {
+				sh('zap.sh -cmd -quickurl http://$(kubectl get services/asgbuggy --namespace=devsecops -o json| jq -r ".status.loadBalancer.ingress[] | .hostname") -quickprogress -quickout ${WORKSPACE}/zap_report.html')
+				archiveArtifacts artifacts: 'zap_report.html' , fingerprint: true
+		    }
+	     }
+       } 
+      // stage('ZAP Scan') {
+      //       steps {
+      //             script {
+      //                   withKubeConfig([credentialsId: 'kubelogin']) {
+      //                   // Resolve URL on the Jenkins node (where kubectl exists)
+      //                   def targetUrl = sh(
+      //                   script: "kubectl get svc asgbuggy -n devsecops -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
+      //                   returnStdout: true
+      //                   ).trim()
 
-                        echo "Target URL: http://${targetUrl}"
+      //                   echo "Target URL: http://${targetUrl}"
 
-                        // Use Jenkins docker credentials for authenticated pulls
-                        withDockerRegistry([credentialsId: 'dockerhub_login', url: 'https://index.docker.io/v1/']) {
+      //                   // Use Jenkins docker credentials for authenticated pulls
+      //                   withDockerRegistry([credentialsId: 'dockerhub_login', url: 'https://index.docker.io/v1/']) {
 
-                    // Run ZAP inside the Docker container
+      //               // Run ZAP inside the Docker container
 
-                              docker.image('owasp/zap2docker-stable').inside('-u root:root') {
-                                    sh """
-                                          zap.sh -cmd \
-                                                -quickurl http://${targetUrl} \
-                                                -quickprogress \
-                                                -quickout zap_report.html
-                              """
-                        }
-                  }
-            }
-            }
-      }
+      //                         docker.image('owasp/zap2docker-stable').inside('-u root:root') {
+      //                               sh """
+      //                                     zap.sh -cmd \
+      //                                           -quickurl http://${targetUrl} \
+      //                                           -quickprogress \
+      //                                           -quickout zap_report.html
+      //                         """
+      //                   }
+      //             }
+      //       }
+      //       }
+      // }
 
-      }
+     // }
 	      
 }
 }
+
