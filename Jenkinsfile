@@ -17,7 +17,7 @@ pipeline {
             steps {		
                         withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
                               sh 'mvn snyk:test -fn' 
-                              archiveArtifacts artifacts: 'snyk_report.json', fingerprint: true
+                              // archiveArtifacts artifacts: 'snyk_report.json', fingerprint: true
                               // -fn stops jenkins job from failing if snyk frinds vulnerabilities
                         }
                   }
