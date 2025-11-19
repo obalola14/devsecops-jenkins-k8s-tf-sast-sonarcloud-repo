@@ -54,7 +54,10 @@ pipeline {
 //          export KUBECONFIG=$KCFG
 //          kubectl get nodes
 //     '''
-}
+                  }
+            }     
+   	}
+
 
       stage ('wait_for_testing'){
 	   steps {
@@ -70,9 +73,7 @@ pipeline {
 		    }
 	     }
        } 
-		}
-	      }
-   	}
-
+      }
+	      
 }
 
