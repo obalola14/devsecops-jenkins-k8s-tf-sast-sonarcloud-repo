@@ -13,6 +13,8 @@ pipeline {
             // verify is the last stage of build lifecycle for mvn and it runs any checks to verify the project is valid and meets quality criteria. sonar:sonar runs the sonar analysis. -Dsonar.* are the parameters required for sonarcloud analysis. specific to your Maven project.
             }
   }
+
+
       // stage('RunSCAAnalysisUsingSnyk') {
       //       steps {		
       //                   withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
@@ -27,8 +29,7 @@ pipeline {
 
       stage('Snyk Scan') {
             steps {
-                  withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
-
+                  withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
                         // 1️⃣ Run Snyk Maven plugin (uploads results to Snyk UI)
                         sh """
                         export SNYK_TOKEN=${SNYK_TOKEN}
