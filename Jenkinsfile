@@ -13,16 +13,46 @@ pipeline {
             // verify is the last stage of build lifecycle for mvn and it runs any checks to verify the project is valid and meets quality criteria. sonar:sonar runs the sonar analysis. -Dsonar.* are the parameters required for sonarcloud analysis. specific to your Maven project.
             }
   }
-      stage('RunSCAAnalysisUsingSnyk') {
-            steps {		
-                        withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
-                              // sh 'mvn snyk:test -fn' 
-                              sh 'mvn snyk:test -Dsnyk.test.jsonReport=true -Dsnyk.test.jsonReportOutputFile=snyk_report.json -fn'
-                              archiveArtifacts artifacts: 'snyk_report.json', fingerprint: true
-                              // -fn stops jenkins job from failing if snyk frinds vulnerabilities
-                        }
+      // stage('RunSCAAnalysisUsingSnyk') {
+      //       steps {		
+      //                   withCredentials([string(credentialsId: 'SNYK_TOKEN', variable: 'SNYK_TOKEN')]) {
+      //                         // sh 'mvn snyk:test -fn' 
+      //                         sh 'mvn snyk:test -Dsnyk.test.jsonReport=true -Dsnyk.test.jsonReportOutputFile=snyk_report.json -fn'
+      //                         archiveArtifacts artifacts: 'snyk_report.json', fingerprint: true
+      //                         // -fn stops jenkins job from failing if snyk frinds vulnerabilities
+      //                   }
+      //             }
+      //       }	
+
+
+      stage('Snyk Scan') {
+            steps {
+                  withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+
+                        // 1️⃣ Run Snyk Maven plugin (uploads results to Snyk UI)
+                        sh """
+                        export SNYK_TOKEN=${SNYK_TOKEN}
+                        mvn snyk:test -fn
+                        """
+
+                        // 2️⃣ Run Snyk CLI to produce local JSON report for Jenkins
+                        sh """
+                        export SNYK_TOKEN=${SNYK_TOKEN}
+                        snyk test --file=pom.xml --json > snyk_report.json
+                        """
+
+                        // 3️⃣ Archive the JSON report in Jenkins
+                        archiveArtifacts artifacts: 'snyk_report.json', fingerprint: true
+
+                        // 4️⃣ (Optional) Convert to HTML for human-readable report
+                        // snyk-to-html -i snyk_report.json -o snyk_report.html
+                        // archiveArtifacts artifacts: 'snyk_report.html'
                   }
-            }	
+            }
+      }
+
+
+
 //steps below builds docker image and pushes to AWS ECR, different from using dokcer commands in shell script. Made possible with Jenkins Docker Pipleline plugin
       stage('Build') { 
             steps { 
